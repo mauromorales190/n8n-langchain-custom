@@ -2,19 +2,24 @@ FROM n8nio/n8n:1.121.3
 
 USER root
 
-# Instalar paquetes globalmente en lugar de dentro de n8n
-RUN npm install -g @n8n/n8n-nodes-langchain@1.121.1 --legacy-peer-deps && \
-    npm install -g @blotato/n8n-nodes-blotato --legacy-peer-deps
+# Instalar dependencias del sistema necesarias
+RUN apk add --no-cache python3 py3-pip make g++
 
-# Crear directorio para community nodes si no existe
-RUN mkdir -p /home/node/.n8n/nodes
+# Downgrade openai a versión compatible con LangChain
+RUN cd /usr/local/lib/node_modules/n8n && \
+    npm uninstall openai && \
+    npm install openai@4.62.1 --legacy-peer-deps
 
-# Copiar nodos instalados al directorio de n8n
-RUN cp -r /usr/local/lib/node_modules/@n8n/n8n-nodes-langchain /home/node/.n8n/nodes/ || true && \
-    cp -r /usr/local/lib/node_modules/@blotato/n8n-nodes-blotato /home/node/.n8n/nodes/ || true
+# Ahora instalar LangChain con la versión correcta de openai
+RUN cd /usr/local/lib/node_modules/n8n && \
+    npm install @n8n/n8n-nodes-langchain@1.121.1 --legacy-peer-deps
 
-# Dar permisos correctos
-RUN chown -R node:node /home/node/.n8n
+# Instalar otros community nodes
+RUN cd /usr/local/lib/node_modules/n8n && \
+    npm install @blotato/n8n-nodes-blotato --legacy-peer-deps
+
+# Fix permisos
+RUN chown -R node:node /usr/local/lib/node_modules/n8n
 
 USER node
 
