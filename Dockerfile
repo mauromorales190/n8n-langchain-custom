@@ -2,3 +2,5 @@ FROM n8nio/n8n:1.70.0
 
 ENV NODE_ENV=production
 ENV N8N_COMMUNITY_PACKAGES_ENABLED=true
+
+# Force rebuild - 2025-11-29
