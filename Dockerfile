@@ -2,16 +2,19 @@ FROM n8nio/n8n:1.121.3
 
 USER root
 
-# Actualizar npm
-RUN npm install -g npm@latest
+# Instalar paquetes globalmente en lugar de dentro de n8n
+RUN npm install -g @n8n/n8n-nodes-langchain@1.121.1 --legacy-peer-deps && \
+    npm install -g @blotato/n8n-nodes-blotato --legacy-peer-deps
 
-# Instalar nodos de LangChain
-RUN cd /usr/local/lib/node_modules/n8n && \
-    npm install --legacy-peer-deps @n8n/n8n-nodes-langchain@1.121.1
+# Crear directorio para community nodes si no existe
+RUN mkdir -p /home/node/.n8n/nodes
 
-# Instalar otros community nodes
-RUN cd /usr/local/lib/node_modules/n8n && \
-    npm install --legacy-peer-deps @blotato/n8n-nodes-blotato
+# Copiar nodos instalados al directorio de n8n
+RUN cp -r /usr/local/lib/node_modules/@n8n/n8n-nodes-langchain /home/node/.n8n/nodes/ || true && \
+    cp -r /usr/local/lib/node_modules/@blotato/n8n-nodes-blotato /home/node/.n8n/nodes/ || true
+
+# Dar permisos correctos
+RUN chown -R node:node /home/node/.n8n
 
 USER node
 
